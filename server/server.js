@@ -10,10 +10,14 @@ connectDB()
 const app = express();
 app.use(cors());
 
+// Raw body parsing for webhooks (must come before express.json())
+app.use("/api/clerk", express.raw({ type: "application/json" }));
+
+// JSON middleware for other routes
 app.use(express.json())
 app.use(clerkMiddleware())
 
-app.use("/api/clerk",clerkWebhooks);
+app.use("/api/clerk", clerkWebhooks);
 
 app.get("/", (req, res) => res.send("API is working"));
 
