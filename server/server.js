@@ -10,6 +10,13 @@ connectDB()
 const app = express();
 app.use(cors());
 
+// Debug middleware to log all requests to webhook endpoint
+app.use("/api/clerk", (req, res, next) => {
+    console.log(`🔗 Webhook received: ${req.method} ${req.path}`);
+    console.log("Headers:", req.headers);
+    next();
+});
+
 // Raw body parsing for webhooks (must come before express.json())
 app.use("/api/clerk", express.raw({ type: "application/json" }));
 
