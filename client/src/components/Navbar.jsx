@@ -71,7 +71,7 @@ const Navbar = () => {
           }`}
         />
         <Link to="/" className="flex items-center gap-2">
-          <span className="text-xl font-semibold text-white">Rest & Live </span>
+          <span className="text-xl font-semibold text-white">   </span>
         </Link>
       </Link>
 
