@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { assets } from "../assets/assets";
-import { useClerk, useUser, UserButton } from "@clerk/clerk-react";
+import { useClerk, UserButton } from "@clerk/clerk-react";
+import { useAppContext } from "../context/AppContext";
 
 const BookIcon = () => (
   <svg
@@ -11,6 +12,7 @@ const BookIcon = () => (
     strokeWidth="1.5"
     stroke="currentColor"
     className="w-5 h-5"
+    
   >
     <path
       strokeLinecap="round"
@@ -24,34 +26,34 @@ const Navbar = () => {
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Hotels", path: "/rooms" },
-    { name: "Experince", path: "/" },
-    { name: "About", path: "/" },
+    { name: "Experience", path: "/experince" },
+    { name: "About", path: "/about" },
   ];
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [hasHotel, setHasHotel] = useState(false); // New state
 
+  const location = useLocation();
   const { openSignIn } = useClerk();
-  const { user } = useUser();
+  const { user, navigate, setShowHotelReg } = useAppContext();
 
   useEffect(() => {
-     
-    if(location.pathname !=='/'){
-      setIsScrolled(true)
+    if (location.pathname !== "/") {
+      setIsScrolled(true);
       return;
-    }else{
-      setIsScrolled(false)
     }
-    setIsScrolled(prev =>location.pathname !=='/'? true:prev)
-
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const registeredHotel = localStorage.getItem("hasHotel");
+    setHasHotel(registeredHotel === "true");
+  }, []);
 
   return (
     <nav
@@ -70,9 +72,13 @@ const Navbar = () => {
             isScrolled ? "invert opacity-80" : ""
           }`}
         />
-        <Link to="/" className="flex items-center gap-2">
-          <span className="text-xl font-semibold text-white">   </span>
-        </Link>
+        <span
+          className={`text-lg font-semibold ${
+            isScrolled ? "text-gray-700" : "text-white"
+          }`}
+        >
+          Rest & Live
+        </span>
       </Link>
 
       {/* Desktop Nav */}
@@ -93,14 +99,20 @@ const Navbar = () => {
             />
           </a>
         ))}
-        <button
-          className={`border px-4 py-1 text-sm font-light rounded-full cursor-pointer ${
-            isScrolled ? "text-black" : "text-white"
-          } transition-all`}
-          onClick={() => navigate("/owner")}
-        >
-          Dashboard
-        </button>
+
+        {user && (
+          <button
+            className={`border px-4 py-1 text-sm font-light rounded-full cursor-pointer ${
+              isScrolled ? "text-black" : "text-white"
+            } transition-all`}
+            onClick={() => {
+              console.log("Hotel button clicked");
+              hasHotel ? navigate("/owner") : setShowHotelReg(true);
+            }}
+          >
+            {hasHotel ? "Dashboard" : "List Your Hotel"}
+          </button>
+        )}
       </div>
 
       {/* Desktop Right */}
@@ -108,9 +120,7 @@ const Navbar = () => {
         <img
           src={assets.searchwhite}
           alt="search"
-          className={`${
-            isScrolled ? "invert" : ""
-          } h-7 transition-all duration-500`}
+          className={`${isScrolled ? "invert" : ""} h-7 transition-all`}
         />
 
         {user ? (
@@ -133,8 +143,7 @@ const Navbar = () => {
         )}
       </div>
 
-      {/* Mobile Menu Button */}
-
+      {/* Mobile Right */}
       <div className="flex items-center gap-3 md:hidden">
         {user && (
           <UserButton>
@@ -151,7 +160,7 @@ const Navbar = () => {
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           src={assets.menuIcon}
           alt="menu"
-          className={`${isScrolled ? "invert" : "invert"} h-7`} // always inverted
+          className={`${isScrolled ? "invert" : "invert"} h-7`}
         />
       </div>
 
@@ -165,7 +174,7 @@ const Navbar = () => {
           className="absolute top-4 right-4"
           onClick={() => setIsMenuOpen(false)}
         >
-          <img src={assets.closeIcon} alt="close-menu" className="h-6.5" />
+          <img src={assets.closeIcon} alt="close" className="h-6.5" />
         </button>
 
         {navLinks.map((link, i) => (
@@ -177,15 +186,21 @@ const Navbar = () => {
         {user && (
           <button
             className="bg-black text-white border px-4 py-1 text-sm font-light rounded-full cursor-pointer transition-all"
-            onClick={() => navigate("/owner")}
+            onClick={() => {
+              setIsMenuOpen(false);
+              hasHotel ? navigate("/owner") : setShowHotelReg(true);
+            }}
           >
-            Dashboard
+            {hasHotel ? "Dashboard" : "List Your Hotel"}
           </button>
         )}
 
         {!user && (
           <button
-            onClick={openSignIn}
+            onClick={() => {
+              setIsMenuOpen(false);
+              openSignIn();
+            }}
             className="bg-black text-white px-8 py-2.5 rounded-full transition-all duration-500"
           >
             Login
@@ -195,4 +210,5 @@ const Navbar = () => {
     </nav>
   );
 };
+
 export default Navbar;
